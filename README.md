@@ -9,42 +9,39 @@ The name "Stella" is meant to convey a connection to both Luna, and to [Project 
 
 Stella is open-source, and is covered by the GPL. Potential contributors are welcome to fork this repository and issue pull requests.
 
-[1](http://www.itshouldjustworktm.com/?p=875)
-[2](http://www.trillek.org)
-
 ---------
 
 RESTful API: first draft
 -----
 
-Here is an outline of the editor-server protocol. HTTP requests are sent to the local server (base-path `http://0.0.0.0:8080`).
+Here is an outline of the editor-server protocol. HTTP requests are sent to the local server (base-path `http://127.0.0.1:8080`).
 
 Unless otherwise specified, all commands are with respect to a single document (that is, you can send a change to one document, no more no less). All requests' content is in JSON format. The content of a request will minimally have the following content:
 
-  {
-    document: "path/to/file.json"
-  }
+	{
+		document: "path/to/file.json"
+	}
 
 __Document Management__
 
-* __Create a JSON file:__ `GET` at `/create`, using the above minimum-json request
+* __Create a JSON file:__ `GET @ /create`, using the above minimum-json request
 * open and save are not needed since documents are managed by a database (they are implicit)
 
 __Editing__
 
-* __Make a change:__ `POST` at `/edit`, adding a field `data` which contains a list of edits (usually length 1). See the section on overwrites below. Basically, an edit has the form
+* __Make a change:__ `POST @ /edit`, adding a field `data` which contains a list of edits (usually length 1). See the section on overwrites below. Basically, an edit has the form
 
-    {
-      property1: "newvalue1",
-      property2: "newvalue2",
-      property3: 
-      {
-        subproperty: "newsub"
-      }
-    }
+		{
+		property1: "newvalue1",
+		property2: "newvalue2",
+		property3: 
+			{
+				subproperty: "newsub"
+			}
+		}
     
-* __Undo:__ `POST` at `/undo`, using the minimum request.
-* __Redo:__ `POST` at `/redo`, ditto.
+* __Undo:__ `POST @ /undo`, using the minimum request.
+* __Redo:__ `POST @ /redo`, ditto.
 
 __Git__
 
@@ -52,13 +49,16 @@ This is a serverely un-thought-out API. In any case, git integration is low prio
 
 The big question is whether a single editor can commit changes made by other editors, or if the server should maintain exclusive control. Also, it is not easy to handle conflicts via editors. Anything not covered by the RESTful protocol can be done manually from the command line or the git editor of choice. Here is one potential API:
 
-* __Commit:__ `GET` at `/git-commit`, using the following structure for the content:
+* __Commit:__ `GET @ /git-commit`, using the following structure for the content:
 
     {
       documents: ["path/to/document1", "path/to/document2", ...]
       message: "this is the commit message"
     }
     
-* __Pull:__ `GET` at `/git-pull`, this command will fetch and merge the latest info from the central repository.
-*__Push:__ `GET` at `/git-push`, send all local commits to the central repository (as a pull-request)
+* __Pull:__ `GET @ /git-pull`, this command will fetch and merge the latest info from the central repository.
+*__Push:__ `GET @ /git-push`, send all local commits to the central repository (as a pull-request)
 * __Branch and Checkout:__ not sure if these should be included or not.
+
+[1]: http://www.itshouldjustworktm.com/?p=875
+[2]: http://www.trillek.org
