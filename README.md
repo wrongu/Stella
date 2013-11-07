@@ -16,7 +16,7 @@ How it Works
 
 The server keeps track of JSON documents and the undo/redo stacks with a MongoDB database. Each JSON document corresponds to a file on the local disk. When Stella is launched for the first time, the user will be asked to choose a root-directory for all JSON documents. Requests to the API target a specific document using relative paths to this root directory.
 
-If you want multiple editors to share an undo/redo stack, put them into the same _group_. The server will maintain a list of named groups. Edits are tagged in the database with a group id. Undo/Redo applies only to edits made by that editor's group. Editors are in charge of keeping track of their own group's id. You may get unexpected behavior if editors unknowingly share a group id. It's a feature, not a bug.
+If you want multiple editors to share an undo/redo stack, put them into the same _group_. Edits are tagged in the database with a group id. Undo/Redo applies only to edits made by that editor's group. Editors are in charge of keeping track of their own group's id. You may get unexpected behavior if editors unknowingly share a group id. It's a feature, not a bug.
 
 Editors
 -----
