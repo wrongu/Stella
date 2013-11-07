@@ -35,7 +35,7 @@ and the response will contain the id that the editor must keep track of and incl
 
 __Document Management__
 
-* __Create a JSON file:__ `GET @ /create`, using the minimum request with `document` and `editor`.
+* __Create a JSON file:__ `PUT @ /create`, using the minimum request with `document` and `editor`.
 * open and save are not needed since documents are managed by a database (they are implicit)
 
 __Editing__
@@ -60,20 +60,11 @@ __Refresh__ Changes should not be stored in the editor. Any user actions should 
 
 __Git__
 
-This is a serverely un-thought-out API. In any case, git integration is low priority.
+To be determined later. Things to think about now:
 
-The big question is whether a single editor can commit changes made by other editors, or if the server should maintain exclusive control. Also, it is not easy to handle conflicts via editors. Anything not covered by the RESTful protocol can be done manually from the command line or the git editor of choice. Here is one potential API:
-
-* __Commit:__ `GET @ /git-commit`, using the following structure for the content:
-
-    {
-      documents: ["path/to/document1", "path/to/document2", ...]
-      message: "this is the commit message"
-    }
-    
-* __Pull:__ `GET @ /git-pull`, this command will fetch and merge the latest info from the central repository.
-*__Push:__ `GET @ /git-push`, send all local commits to the central repository (as a pull-request)
-* __Branch and Checkout:__ not sure if these should be included or not.
+* git does not interface directly with mongodb documents, as far as I know. This means that there must be files on-disk. When does the server write to these?
+* should the server maintain control over all git functions? (I'm going with "yes")
+* the best solution I have so far is to replicate the github api inside stella.. or at least the few functions we need.
 
 ---
 
