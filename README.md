@@ -1,9 +1,9 @@
 Stella
 ======
 
-NOTE: There is no source code yet. I will publish the source once the basic framework is done. This README is the 0th draft, and is subject to change. A lot. Please give feedback about the RESTful API draft below.
+NOTE: There is no source code yet. I will publish the source once the basic framework is done. This README is the 1st draft, and is subject to change. A lot. Please give feedback about the RESTful API draft below.
 
-Stella is a Java implementation of the game-development tool server "Luna" created by Insomniac Games. You can read more about Luna [here][1]. To summarize, this is a JSON document editing server which accepts commands via a RESTful API. Document and asset editors may be implemented in any language as long as they communicate with Stella via GET and POST. The server runs locally on the same machine as the editors, although it could theoretically be accessed remotely. _Why_ go through all this trouble? This design decouples the editing tools from document management. The server _always_ maintains the authoritative copy of any document. It also maintains the undo/redo stack for each editor, opens and saves files, and will someday be able to communicate with a central repository over git. Multiple editors can access and edit the same document concurrently such that changes in one editor are immediately reflected in another.
+Stella is a Java implementation of the game-development tool server "Luna" created by Insomniac Games. You can read more about Luna [here][1]. To summarize, this is a JSON document editing server which accepts commands via a RESTful API. Document and asset editors may be implemented in any language as long as they communicate with Stella via GET and POST. The server runs locally on the same machine as the editors, although it could theoretically be accessed remotely. Why go through all this trouble? This design decouples the editing tools from document management. The server _always_ maintains the authoritative copy of any document. It also maintains the undo/redo stack for each editor, opens and saves files, and will someday be able to communicate with a central repository over git. Multiple editors can access and edit the same document concurrently such that changes in one editor are immediately reflected in another.
 
 The name "Stella" is meant to convey a connection to both Luna, and to [Project Trillek][2], the space-sim game for which this software is originally created.
 
@@ -11,52 +11,63 @@ Stella is open-source, and is covered by the GPL. Potential contributors are wel
 
 ---------
 
-RESTful API: first draft
+How it Works
+------
+
+The server keeps track JSON documents and the undo/redo stacks with a MongoDB database. Each JSON document corresponds to a file on the local disk. When Stella is launched for the first time, the user will be asked to choose a root-directory for all JSON documents. Requests to the API target a specific document using relative paths to this root directory.
+
+If you want multiple editors to share an undo/redo stack, put them into the same _group_. The server will maintain a list of named groups. Edits are tagged in the database with a group id. Undo/Redo applies only to edits made by that editor's group. Editors are in charge of keeping track of their own group's id. You may get unexpected behavior if editors unknowingly share a group id. It's a feature, not a bug.
+
+Editors
 -----
+
+Stella is a tool for game development, so let's look at a game example. Artists will create 3D models, textures, and sound-effects. There may be a programming api for ai behavior. JSON can be used as the glue that pulls them together; using _this_ model of a car and _that_ texture, it will make _vroom_ sounds when you press _SPACE_.
+
+	{
+	mesh: "assets/meshes/vehicles/car0.obj",
+	texture: "assets/textures/brightred.jpg",
+	sfx:  { file: "assets/sounds/vehicle/vroom.wav",
+		trigger: "KEY-SPACE"} 
+	}
+
+This is what the editors are working with. Notice that we are __not__ talking about making the 3D model or the audio, but editing the JSON that associates them with each other. An Editor could, for example, be a GUI implemented in JavaScript that lets you change these values and renders the result on the screen.
+
+Since the server always has the authoritative copy of any file, the editor must poll the server frequently for updates. The editor should never assume that its version of the JSON file is more recent than the server's.
+
+RESTful API: first draft
+------
 
 Here is an outline of the editor-server protocol. HTTP requests are sent to the local server (base-path `http://127.0.0.1:8080`).
 
-Unless otherwise specified, all commands are with respect to a single document (that is, you can send a change to one document, no more no less). All requests' content is in JSON format. The content of all requests will minimally have the following content:
+Unless otherwise specified, all commands are with respect to a single document (that is, you can send a change to one document, no more no fewer). 
 
-	{
-	document: "path/to/file.json",
-	editor: editor_id
-	}
+__Headers__
 
-__Initialization__
+The request header specifies metadata.
 
-* __Register Editor__ `POST @ /register`. I lied - this is the exception to using the minimum content. Each instance of each editor gets its own undo/redo stack, so the editor must register to get a unique id. The request contains the name of the editor:
+* `X-STELLA-GROUP` is the editor's group-id.
+* `X-STELLA-DOCUMENT` is the relative path of the document to which the current request applies
+* `X-STELLA-REVISION` is the revision of the current document last given 
 
-		{ name: "SFXEditor" }
+__Content__
 
-and the response will contain the id that the editor must keep track of and include with further requests:
-
-		{ id: "server-generated-id" }
+Content is in JSON format. More specifically, the server expects delta-JSON format. This means that the editor should only send the name-value pairs of properties that have changed. Think of it as the minimum-data that can be used by undo/redo (only update the fields that are affected). See the section "Editing Rules" below
 
 __Document Management__
 
-* __Create a JSON file:__ `PUT @ /create`, using the minimum request with `document` and `editor`.
+* __Create a JSON file:__ `PUT or POST /create`; requires the `X-STELLA-DOCUMENT` header
+* __Delete a JSON file:__ `PUT or POST /delete`; requires the `X-STELLA-DOCUMENT` header
 * open and save are not needed since documents are managed by a database (they are implicit)
 
 __Editing__
 
-* __Make a change:__ `POST @ /edit`, adding a field `data` which contains a list of edits (usually length 1). See the section on overwrites below. Basically, an edit has the form
-
-		{
-		property1: "newvalue1",
-		property2: "newvalue2",
-		property3: 
-			{
-				subproperty: "newsub"
-			}
-		}
-    
-* __Undo:__ `POST @ /undo`, using the minimum request.
-* __Redo:__ `POST @ /redo`, ditto.
+* __Make a change:__ `POST /edit`; requires `GROUP` and `DOCUMENT` headers. Content is delta-JSON (see "Editing Rules" below).
+* __Undo:__ `POST /undo`; requires `GROUP` and `DOCUMENT` headers, no content
+* __Redo:__ `POST /redo`; requires `GROUP` and `DOCUMENT` headers, no content
 
 __Refresh__ Changes should not be stored in the editor. Any user actions should be immediately sent to the server. Meanwhile, the editor should also be polling the server frequently to get the latest authoritative copy.
 
-* __Refresh:__ `GET @ /refresh`, 
+* __Refresh:__ `GET /refresh`; requiers all headers; The server's response-header will contain a _revision number_ in `X-STELLA-REVISION`. It is the responsibility of the editor to keep track of this number and supply it with the next refresh. This is used because the server sends back the delta-JSON of updates *since the last request*. If your editor doesn't support delta-JSON and you want the whole document each time, don't supply any revision number OR set it to 0.
 
 __Git__
 
