@@ -63,19 +63,28 @@ All edits are communicated by a `POST` request. The JSON content is used for bot
 	{
 	action: "edit",
 	group: "my-group-id",
-	content: { ... }
+	delta: { ... }
 	}
 
-* __Make a change:__ `POST /{path}` where `action` is `"edit"` and `content` is the delta-JSON for this change.
-* __Undo:__ `POST /{path}` where `action` is `"undo"` and `content` may be left blank
-* __Redo:__ `POST /{path}` where `action` is `"redo"` and `content` may be left blank
+* __Make a change:__ `POST /{path}` where `action` is `"edit"` and `delta` is the delta-JSON for this change.
+* __Undo:__ `POST /{path}` where `action` is `"undo"` and `delta` may be left blank
+* __Redo:__ `POST /{path}` where `action` is `"redo"` and `delta` may be left blank
 
 __Refresh__ Changes should not be stored in the editor. Any user actions should be immediately sent to the server. Meanwhile, the editor should also be polling the server frequently to get the latest authoritative copy.
 
-* __Refresh:__ `GET /{path}` where the content is JSON and specifies a revision number. The server will respond with a single block of delta-JSON corresponding to all changes since the given revision. If you want to receive the whole document, you may either set `revision` to -1 OR leave the content blank.
+* __Refresh:__ `GET /{path}` where the content is JSON and specifies a revision number. The server will respond with an updated revision number and the delta-JSON since the given revision. If you want to receive the whole document, you may either set `revision` to -1 OR leave the content blank.
 
+	__Request__
+	
 		{
 		revision: <revision-number>
+		}
+	
+	__Response__
+	
+		{
+		revision: <revision-number>,
+		delta: { ... }
 		}
 
 ---
