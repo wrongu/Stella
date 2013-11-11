@@ -53,8 +53,8 @@ Content is in JSON format. More specifically, the server expects delta-JSON form
 
 __Document Management__
 
-* __Create a JSON file:__ `PUT /{path}` where `{path}` is the relative path to the document you wish to create.
-* __Delete a JSON file:__ `DELETE /{path}` where `{path}` is the relative path to the document you wish to delete.
+* __Create a JSON file:__ `PUT /api/{path}` where `{path}` is the relative path to the document you wish to create. Content is ignored.
+* __Delete a JSON file:__ `DELETE /api/{path}` where `{path}` is the relative path to the document you wish to delete. Content is ignored.
 
 __Editing__
 
@@ -66,13 +66,13 @@ All edits are communicated by a `POST` request. The JSON content is used for bot
 	delta: { ... }
 	}
 
-* __Make a change:__ `POST /{path}` where `action` is `"edit"` and `delta` is the delta-JSON for this change.
-* __Undo:__ `POST /{path}` where `action` is `"undo"` and `delta` may be left blank
-* __Redo:__ `POST /{path}` where `action` is `"redo"` and `delta` may be left blank
+* __Make a change:__ `POST /api/{path}` where `action` is `"edit"` and `delta` is the delta-JSON for this change.
+* __Undo:__ `POST /api/{path}` where `action` is `"undo"` and `delta` may be left blank
+* __Redo:__ `POST /api/{path}` where `action` is `"redo"` and `delta` may be left blank
 
 __Refresh__ Changes should not be stored in the editor. Any user actions should be immediately sent to the server. Meanwhile, the editor should also be polling the server frequently to get the latest authoritative copy.
 
-* __Refresh:__ `GET /{path}` where the content is JSON and specifies a revision number. The server will respond with an updated revision number and the delta-JSON since the given revision. If you want to receive the whole document, you may either set `revision` to -1 OR leave the content blank.
+* __Refresh:__ `GET /api/{path}` where the content is JSON and specifies a revision number. The server will respond with an updated revision number and the delta-JSON since the given revision. If you want to receive the whole document, you may either set `revision` to -1 OR leave the content blank.
 
 	__Request__
 	
