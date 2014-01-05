@@ -43,6 +43,11 @@
 			<artifactId>jackson-core-asl</artifactId>
 			<version>1.9.13</version>
 		</dependency>
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-mapper-asl</artifactId>
+			<version>1.9.13</version>
+		</dependency>
 		<!-- Apache's Configuration Library -->
 		<dependency>
 			<groupId>commons-configuration</groupId>
@@ -100,6 +105,7 @@
             <plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-eclipse-plugin</artifactId>
+				<version>2.6</version>
 				<configuration>
 					<downloadJavadocs>true</downloadJavadocs>
 				</configuration>
