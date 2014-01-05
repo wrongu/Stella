@@ -15,13 +15,12 @@ import org.apache.commons.configuration.*;
 import static org.stella.Constants.*;
 
 /**
- * Main entry point for Stella. Handles initalization of all components.
+ * Main entry point for Stella. Handles initialization of all components.
  * 
  * Main provides wrapped access to some functions, like log() which wraps
  * IInputOutput. Otherwise, go through the respective managers:
  * 	ConfigurationManager for changing user configuration values
  *  ServerManager for interacting with the http-server
- *  TODO create MongoMangager
  *  TODO create Projects (where each project has its own configuration)
  * 
  * @author wrongu
