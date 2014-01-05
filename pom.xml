@@ -97,6 +97,13 @@
                     <mainClass>org.trillek.stella.Main</mainClass>
                 </configuration>
             </plugin>
+            <plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-eclipse-plugin</artifactId>
+				<configuration>
+					<downloadJavadocs>true</downloadJavadocs>
+				</configuration>
+			</plugin>
         </plugins>
     </build>
 
@@ -104,7 +111,7 @@
         <jersey.version>2.4</jersey.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-    <description>Stella is a java implementation of the local tool server Luna created by Insomniac Games. Stella is originally created as part of Project Trillek.
+    <description>Stella is a java implementation of a JSON editing and management server inspired by Insomniac Games' LunaServer. Stella is originally created as part of Project Trillek.
 
 Stella runs a local RESTful server to manage JSON document editing, providing document management, editing, and undo/redo functions. Editors interface with Stella over a local network connection and HTTP.</description>
 </project>
