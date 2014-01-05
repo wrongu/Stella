@@ -8,8 +8,52 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.*;
 
+/**
+ * A class with static helper methods for manipulating JSON. JsonHelper.applyDelta is probably the most useful.
+ * 
+ * What is delta-JSON? It's a (generally) small JSON object that expresses the difference between larger JSON objects.
+ * It is meant to express the idea that if object B is only slightly different than object A, you can just write A + d = B, 
+ * where d is the delta-JSON object. Naturally, this equation can be reversed: A = B - d. In situations like this, -d is
+ * the _inverse_ of d. The inverse depends entirely on what A and B are.
+ * 
+ * An example of delta-JSON:
+ * 
+ * A = {
+ * 	"name": "stella",
+ *  "version": "0.0.1",
+ *  "goes-up-to": 11
+ * }
+ * 
+ * d = {
+ *  "version": "0.0.2",
+ *  "goes-up-to": null,
+ *  "author": "wrongu"
+ * }
+ * 
+ * B = A + d = {
+ *  "name": "stella",
+ *  "version": "0.0.2",
+ *  "author": "wrongu"
+ * }
+ * 
+ * inverse-d = {
+ *  "version": "0.0.1",
+ *  "goes-up-to": 11,
+ *  "author": null
+ * }
+ * 
+ * @author wrongu
+ *
+ */
 public class JsonHelper {
 	
+	/**
+	 * Recursively apply delta to the given root node.
+	 * 
+	 * @param base the root node of the (generally) large document
+	 * @param delta the delta-json to alter base
+	 * @return a DeltaResults object that has two JsonNode members: result (i.e. base+delta), and inverse (i.e. -delta) such that base==applyDelta(result, inverse)
+	 */
 	public static DeltaResults applyDelta(JsonNode base, JsonNode delta){
 		DeltaResults dr = new DeltaResults();
 		// if object: create or recurse
@@ -72,7 +116,7 @@ public class JsonHelper {
 		public JsonNode inverse;
 	}
 
-	// for testing
+	// TESTING
 	private static int testCount = 1;
 	
 	private static void testDelta(JsonNode base, JsonNode delta){
