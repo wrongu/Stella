@@ -15,6 +15,7 @@ import java.net.UnknownHostException;
 import javax.swing.SwingUtilities;
 
 import org.apache.commons.configuration.*;
+import static org.stella.Constants.*;
 
 /**
  * Main entry point for Stella. Handles initalization of all components.
@@ -24,12 +25,14 @@ import org.apache.commons.configuration.*;
  * 	ConfigurationManager for changing user configuration values
  *  ServerManager for interacting with the http-server
  *  TODO create MongoMangager
+ *  TODO create Projects (where each project has its own configuration)
  * 
  * @author wrongu
  */
 public class Main {
 	
 	// allow public access to changing config values
+	// TODO be consistent about using an instance of Configuration or using static ConfigurationManager
 	public static Configuration config;
 	
 	private static HttpServer server;
@@ -37,25 +40,28 @@ public class Main {
 	private static IInputOutput io_handler;
 	private static GUI gui;
 	
+	/**
+	 * Main entry point for the Stella server.
+	 */
     public static void main(String[] args) throws IOException {    	
     	// step 1 - load configuration for default/custom server location and port
     	config = ConfigurationManager.loadConfiguration();
     	if(config != null){
             
             // step 2 - create user interface
-            if(config.getBoolean("GUI")){
+            if(config.getBoolean(CONF_USE_GUI)){
             	setGuiIO();
             } else{
             	setConsoleIO();
             }
             
-            // set<Gui or Console>IO happens in a separate thread. because reasons.
-            // so, we have to execute the rest of the init code on the same thread, but later:
+            // set<Gui or Console>IO happens in a separate thread (because IO thread is separate and always listening)
+            // so, we have to execute the rest of the init code on that thread:
             SwingUtilities.invokeLater(new Runnable(){
             	public void run(){
                     // step 1, part 2 - if this is the first time Stella is launched, the root folders
                     //	for json files and assets won't be set. set them now.
-                    File json_directory = new File(config.getString(Constants.CONF_ROOT_JSON));
+                    File json_directory = new File(config.getString(CONF_ROOT_JSON));
                     while(!(json_directory.exists() && json_directory.isDirectory())){
                     	String path = io_handler.directory_prompt("Choose root directory for saving JSON documents");
                     	if(path == null) break;
@@ -63,10 +69,10 @@ public class Main {
                     }
                     // if it was set properly, save it
                     if(json_directory.exists() && json_directory.isDirectory()){
-                    	ConfigurationManager.setProperty(Constants.CONF_ROOT_JSON, json_directory.getAbsolutePath());
+                    	ConfigurationManager.setProperty(CONF_ROOT_JSON, json_directory.getAbsolutePath());
                     }
                     
-                    File assets_directory = new File(config.getString(Constants.CONF_ROOT_GAME));
+                    File assets_directory = new File(config.getString(CONF_ROOT_GAME));
                     while(!(assets_directory.exists() && assets_directory.isDirectory())){
                     	String path = io_handler.directory_prompt("Choose root directory for loading game assets");
                     	if(path == null) break;
@@ -74,7 +80,7 @@ public class Main {
                     }
                     // if it was set properly, save it
                     if(assets_directory.exists() && assets_directory.isDirectory()){
-                    	ConfigurationManager.setProperty(Constants.CONF_ROOT_GAME, assets_directory.getAbsolutePath());
+                    	ConfigurationManager.setProperty(CONF_ROOT_GAME, assets_directory.getAbsolutePath());
                     }
                     ConfigurationManager.saveUserConfig();
                     
@@ -82,19 +88,19 @@ public class Main {
                     Main.log("Welcome to the Stella JSON document editing server");
                     Main.log("A README is available at www.github.com/wrongu/Stella\n");
                     Main.log("Current configuration:");
-                    Main.log(" JSON documents' root directory: "+config.getString(Constants.CONF_ROOT_JSON));
-                    Main.log(" Assets root directory: "+config.getString(Constants.CONF_ROOT_GAME));
+                    Main.log(" JSON documents' root directory: "+config.getString(CONF_ROOT_JSON));
+                    Main.log(" Assets root directory: "+config.getString(CONF_ROOT_GAME));
                     Main.log("\n");
                     Main.log("type /help to see server commands");
                     
                     // Steps 3 and 4: start server and database connections
                     server = ServerManager.startServer(
-                    		config.getString(Constants.CONF_SERVER_PATH),
-                    		config.getInt(Constants.CONF_SERVER_PORT));
+                    		config.getString(CONF_SERVER_PATH),
+                    		config.getInt(CONF_SERVER_PORT));
                     try {
 						mongo = new MongoClient(
-								config.getString(Constants.CONF_MONGO_PATH),
-								config.getInt(Constants.CONF_MONGO_PORT));
+								config.getString(CONF_MONGO_PATH),
+								config.getInt(CONF_MONGO_PORT));
 					} catch (UnknownHostException e) {
 						e.printStackTrace();
 					}
@@ -167,7 +173,7 @@ public class Main {
     }
 
 	public static void restartServer() {
-        server = ServerManager.startServer(config.getString("SERVER_PATH"), config.getInt("SERVER_PORT"));
+        server = ServerManager.startServer(config.getString(CONF_SERVER_PATH), config.getInt(CONF_SERVER_PORT));
 	}
 	
 	public static void log(String message){
