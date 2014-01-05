@@ -25,6 +25,12 @@ public class Constants {
 	public static final String CONF_ROOT_JSON = "ROOT_JSON_ASSETS";
 	public static final String CONF_ROOT_GAME = "ROOT_GAME_ASSETS";
 	
+	// Database configuration
+	public static final String DB_NAME = "STELLADB";
+	public static final String COLL_DOCUMENTS = "DOCUMENTS";
+	public static final String COLL_UNDO = "UNDO";
+	public static final String COLL_REDO = "REDO";
+	
 	// Package Names
 	public static final String REST_PACKAGE = "org.stella.api";
 	

@@ -6,11 +6,8 @@ import org.stella.io.IInputOutput;
 import org.stella.io.GUI;
 import org.stella.io.LogPanel;
 
-import com.mongodb.MongoClient;
-
 import java.io.File;
 import java.io.IOException;
-import java.net.UnknownHostException;
 
 import javax.swing.SwingUtilities;
 
@@ -36,7 +33,6 @@ public class Main {
 	public static Configuration config;
 	
 	private static HttpServer server;
-	private static MongoClient mongo;
 	private static IInputOutput io_handler;
 	private static GUI gui;
 	
@@ -97,13 +93,8 @@ public class Main {
                     server = ServerManager.startServer(
                     		config.getString(CONF_SERVER_PATH),
                     		config.getInt(CONF_SERVER_PORT));
-                    try {
-						mongo = new MongoClient(
-								config.getString(CONF_MONGO_PATH),
-								config.getInt(CONF_MONGO_PORT));
-					} catch (UnknownHostException e) {
-						e.printStackTrace();
-					}
+					
+                    MongoManager.connect(config.getString(CONF_MONGO_PATH), config.getInt(CONF_MONGO_PORT));
             	}
             });
     	}
@@ -123,7 +114,7 @@ public class Main {
     public static void quit(){
     	io_handler.printLn("Stella shutting down...");
     	server.stop();
-    	mongo.close();
+    	MongoManager.close();
     	io_handler.closeStreams();
     	if(gui != null) gui.dispose();
     	// save config details
