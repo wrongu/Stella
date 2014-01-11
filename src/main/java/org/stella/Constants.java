@@ -7,6 +7,15 @@ package org.stella;
  *
  */
 public class Constants {
+	// API configuration
+	public static final String API_ROOT = "api";
+	public static final String API_HEADER_REVISION = "X-STELLA-REVISION";
+	public static final String API_HEADER_ACTION = "X-STELLA-ACTION";
+	public static final String API_HEADER_GROUP = "X-STELLA-GROUP";
+	public static final String API_ACTION_EDIT = "edit";
+	public static final String API_ACTION_UNDO = "undo";
+	public static final String API_ACTION_REDO = "redo";
+	
 	// App Metadata
 	public static final String APP_NAME = "Stella";
 	public static final String APP_VERSION = "0.1.0";
