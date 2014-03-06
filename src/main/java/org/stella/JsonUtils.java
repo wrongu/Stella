@@ -45,7 +45,7 @@ import org.codehaus.jackson.node.*;
  * @author wrongu
  *
  */
-public class JsonHelper {
+public class JsonUtils {
 	
 	/**
 	 * Recursively apply delta to the given root node.
