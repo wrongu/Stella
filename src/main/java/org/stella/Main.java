@@ -28,7 +28,6 @@ import static org.stella.Constants.*;
 public class Main {
 	
 	// allow public access to changing config values
-	// TODO be consistent about using an instance of Configuration or using static ConfigurationManager
 	public static Configuration config;
 	
 	private static HttpServer server;
@@ -56,37 +55,12 @@ public class Main {
             	public void run(){
                     // step 1, part 2 - if this is the first time Stella is launched, the root folders
                     //	for json files and assets won't be set. set them now.
-                    File json_directory = new File(config.getString(CONF_ROOT_JSON));
-                    while(!(json_directory.exists() && json_directory.isDirectory())){
-                    	String path = io_handler.directory_prompt("Choose root directory for saving JSON documents");
-                    	if(path == null) break;
-                    	json_directory = new File(path);
-                    }
-                    // if it was set properly, save it
-                    if(json_directory.exists() && json_directory.isDirectory()){
-                    	ConfigurationManager.setProperty(CONF_ROOT_JSON, json_directory.getAbsolutePath());
-                    }
-                    
-                    File assets_directory = new File(config.getString(CONF_ROOT_GAME));
-                    while(!(assets_directory.exists() && assets_directory.isDirectory())){
-                    	String path = io_handler.directory_prompt("Choose root directory for loading game assets");
-                    	if(path == null) break;
-                    	assets_directory = new File(path);
-                    }
-                    // if it was set properly, save it
-                    if(assets_directory.exists() && assets_directory.isDirectory()){
-                    	ConfigurationManager.setProperty(CONF_ROOT_GAME, assets_directory.getAbsolutePath());
-                    }
+            		Main.getFileProperty(CONF_ROOT_JSON, "Choose root directory for saving JSON documents");
+            		Main.getFileProperty(CONF_ROOT_GAME, "Choose root directory for loading game assets");
                     ConfigurationManager.saveUserConfig();
                     
                     // INITIAL MESSAGE TO USER
-                    Main.log("Welcome to the Stella JSON document editing server");
-                    Main.log("A README is available at www.github.com/wrongu/Stella\n");
-                    Main.log("Current configuration:");
-                    Main.log(" JSON documents' root directory: "+config.getString(CONF_ROOT_JSON));
-                    Main.log(" Assets root directory: "+config.getString(CONF_ROOT_GAME));
-                    Main.log("\n");
-                    Main.log("type /help to see server commands");
+                    Main.printWelcomeMessage();
                     
                     // Steps 3 and 4: start server and database connections
                     server = ServerManager.startServer(
@@ -94,9 +68,38 @@ public class Main {
                     		config.getInt(CONF_SERVER_PORT));
 					
                     MongoManager.connect(config.getString(CONF_MONGO_PATH), config.getInt(CONF_MONGO_PORT));
+                    // TODO test database connections
             	}
             });
     	}
+    }
+    
+    /**
+     * Loads existing, or prompts for new, local directory parameter
+     * @param prop name of the property
+     * @param prompt text to display if requesting new value
+     */
+    private static void getFileProperty(String prop, String prompt){
+        File the_file = new File(config.getString(prop));
+        while(!(the_file.exists() && the_file.isDirectory())){
+        	String path = io_handler.directory_prompt(prompt);
+        	if(path == null) break;
+        	the_file = new File(path);
+        }
+        // if it was set properly, save it
+        if(the_file.exists() && the_file.isDirectory()){
+        	ConfigurationManager.setProperty(prop, the_file.getAbsolutePath());
+        }
+    }
+    
+    private static void printWelcomeMessage(){
+        Main.log("Welcome to the Stella JSON document editing server");
+        Main.log("A README is available at www.github.com/wrongu/Stella\n");
+        Main.log("Current configuration:");
+        Main.log(" JSON documents' root directory: "+config.getString(CONF_ROOT_JSON));
+        Main.log(" Assets root directory: "+config.getString(CONF_ROOT_GAME));
+        Main.log("\n");
+        Main.log("type /help to see server commands");
     }
     
     /**
