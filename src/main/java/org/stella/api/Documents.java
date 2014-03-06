@@ -1,11 +1,17 @@
 package org.stella.api;
 
+import java.io.File;
+import java.io.IOException;
+
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.stella.utils.FileUtils;
 import org.codehaus.jackson.JsonNode;
 import org.stella.Main;
+
+import static org.stella.Constants.*;
 
 // TODO all request body that isn't delta-json needs to be moved to headers.
 // reason: GET does not officially support a request-body, but it can take
@@ -40,6 +46,26 @@ public class Documents {
 	@Path(PATH_PATTERN)
 	public Response createDocument(@PathParam("path") String path){
 		Main.log("create {"+path+"}");
+		// TODO even more thorough sanity check on inputs
+		String fullpath = FileUtils.join(Main.config.getString(CONF_ROOT_JSON), path);
+		File on_disk = new File(fullpath);
+		boolean is_directory = path.charAt(path.length()-1) == File.separatorChar;
+		boolean is_json_file = FileUtils.getExtension(path).equals("json");
+		if(is_json_file){
+			// TODO refactor disk-file management to a separate class
+			if(!on_disk.exists()){
+				on_disk.mkdirs();
+				try {
+					on_disk.createNewFile();
+				} catch (IOException e) {
+					Main.log("Could not create file " + fullpath, true);
+				}
+			}
+		} else if(is_directory){
+			on_disk.mkdirs();
+		} else {
+			return Response.status(Response.Status.UNSUPPORTED_MEDIA_TYPE).build();
+		}
 		return Response.status(Response.Status.OK).build();
 	}
 	
